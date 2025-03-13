@@ -252,5 +252,30 @@
     <script src="../assets/js/gsap_lib/throwable.js"></script>
     <script src="../assets/js/common_scripts.js"></script>
     <script src="../assets/js/inner_pages.js"></script>
+    <script>
+    $(document).ready(function() {
+        $('#contact-form').on('submit', function(e) {
+            e.preventDefault();
+
+            $.ajax({
+                type: 'POST',
+                url: 'contact.php',
+                data: $(this).serialize(),
+                dataType: 'json',
+                success: function(response) {
+                    if (response.type === 'success') {
+                        $('.messages').html('<div class="alert alert-success">' + response.message + '</div>');
+                        $('#contact-form')[0].reset();
+                    } else {
+                        $('.messages').html('<div class="alert alert-danger">' + response.message + '</div>');
+                    }
+                },
+                error: function() {
+                    $('.messages').html('<div class="alert alert-danger">An error occurred. Please try again later.</div>');
+                }
+            });
+        });
+    });
+    </script>
 </body>
 </html>

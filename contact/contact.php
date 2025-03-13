@@ -1,48 +1,85 @@
 <?php
 
-// configure
-$from = 'Demo contact form <demo@domain.com>';
-$sendTo = 'Test contact form <shikitemeikato@gmail.com>'; // Add Your Email
-$subject = 'New message from contact form';
-$fields = array('name' => 'Name', 'subject' => 'Subject', 'email' => 'Email', 'message' => 'Message'); // array variable name => Text to appear in the email
-$okMessage = 'Contact form successfully submitted. Thank you, I will get back to you soon!';
-$errorMessage = 'There was an error while submitting the form. Please try again later';
+// Configuration
+$config = [
+    'from_email' => 'noreply@yourdomain.com',
+    'from_name' => 'Portfolio Contact Form',
+    'to_email' => 'workwithsem@gmail.com',
+    'to_name' => 'Sem',
+    'subject_prefix' => '[Portfolio Contact] '
+];
 
-// let's do the sending
+// Form fields configuration
+$fields = [
+    'name' => 'Name',
+    'subject' => 'Subject',
+    'email' => 'Email',
+    'message' => 'Message'
+];
 
-try
-{
-    $emailText = "You have new message from contact form\n=============================\n";
+// Response messages
+$messages = [
+    'success' => 'Thank you for your message. I will get back to you soon!',
+    'error' => 'There was an error sending your message. Please try again later.',
+    'validation' => 'Please fill in all required fields.'
+];
 
-    foreach ($_POST as $key => $value) {
+try {
+    // Validate request method
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception('Invalid request method');
+    }
 
-        if (isset($fields[$key])) {
-            $emailText .= "$fields[$key]: $value\n";
+    // Validate required fields
+    foreach ($fields as $field => $label) {
+        if (empty($_POST[$field])) {
+            throw new Exception($messages['validation']);
         }
     }
 
-    $headers = array('Content-Type: text/plain; charset="UTF-8";',
-        'From: ' . $from,
-        'Reply-To: ' . $from,
-        'Return-Path: ' . $from,
-    );
+    // Validate email
+    if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+        throw new Exception('Invalid email address');
+    }
+
+    // Prepare email content
+    $emailBody = "New contact form submission\n\n";
+    $emailBody .= "----------------------------------------\n";
+
+    foreach ($fields as $field => $label) {
+        $value = strip_tags(trim($_POST[$field]));
+        $emailBody .= "{$label}: {$value}\n";
+    }
+
+    $emailBody .= "\n----------------------------------------\n";
+    $emailBody .= "Sent from: " . $_SERVER['HTTP_HOST'];
+
+    // Setup email headers
+    $headers = [
+        'Content-Type: text/plain; charset="UTF-8"',
+        'From: ' . $config['from_name'] . ' <' . $config['from_email'] . '>',
+        'Reply-To: ' . $_POST['name'] . ' <' . $_POST['email'] . '>',
+        'X-Mailer: PHP/' . phpversion()
+    ];
+
+    // Send email
+    $subject = $config['subject_prefix'] . $_POST['subject'];
     
-    mail($sendTo, $subject, $emailText, implode("\n", $headers));
+    if (!mail($config['to_email'], $subject, $emailBody, implode("\n", $headers))) {
+        throw new Exception($messages['error']);
+    }
 
-    $responseArray = array('type' => 'success', 'message' => $okMessage);
-}
-catch (\Exception $e)
-{
-    $responseArray = array('type' => 'danger', 'message' => $errorMessage);
+    $response = [
+        'type' => 'success',
+        'message' => $messages['success']
+    ];
+} catch (Exception $e) {
+    $response = [
+        'type' => 'error',
+        'message' => $e->getMessage()
+    ];
 }
 
-if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-    $encoded = json_encode($responseArray);
-
-    header('Content-Type: application/json');
-
-    echo $encoded;
-}
-else {
-    echo $responseArray['message'];
-}
+// Send response
+header('Content-Type: application/json');
+echo json_encode($response);

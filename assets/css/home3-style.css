@@ -1009,6 +1009,14 @@ p {
     filter: invert(0);
 }
 
+/* Add to your existing CSS file */
+.img video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
 /* ====================== [ Start Responsive ] ====================== */
 @media screen and (max-width: 992px) {
     .main-container {

@@ -2932,6 +2932,25 @@ img.left {
     padding-left: 50px;
 }
 
+.alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+.alert-success {
+    color: #155724;
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+}
+
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
 /* ====================== [ End Helper Classes  ] ====================== */
 /* ========= [ responsive ]  ========= */
 /* ====================== [ Start Responsive ] ====================== */
